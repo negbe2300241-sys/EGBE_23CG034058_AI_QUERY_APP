@@ -13,8 +13,8 @@ API_SECRET = os.getenv("GEMINI_API_KEY")
 DATABASE_FILE = "queries.db"
 SERVER_PORT = int(os.getenv("PORT", 5000))
 
-# 3. Initialize Flask
-web_app = Flask(__name__, static_folder="static", template_folder="templates")
+# 3. Initialize Flask (CHANGED 'web_app' to 'app')
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 # 4. Configure AI & DEBUG MODELS
 if API_SECRET:
@@ -38,21 +38,6 @@ def initialize_storage():
     try:
         db_connection = sqlite3.connect(DATABASE_FILE)
         cursor = db_connection.cursor()
-        
-        # Check if table exists and drop it if needed
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='queries'")
-        table_exists = cursor.fetchone()
-        
-        if table_exists:
-            # Check if the table has the correct structure
-            cursor.execute("PRAGMA table_info(queries)")
-            columns = [column[1] for column in cursor.fetchall()]
-            
-            if 'question' not in columns or 'answer' not in columns:
-                print("Table structure is incorrect. Recreating table...")
-                cursor.execute("DROP TABLE queries")
-        
-        # Create the table with correct structure
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS queries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,11 +67,11 @@ def record_transaction(user_text, ai_text):
     except Exception as e:
         print(f"Save Error: {e}")
 
-@web_app.route("/")
+@app.route("/") # CHANGED 'web_app' to 'app'
 def home_page():
     return render_template("index.html")
 
-@web_app.route("/api/ask", methods=["POST"])
+@app.route("/api/ask", methods=["POST"]) # CHANGED 'web_app' to 'app'
 def process_inquiry():
     data_packet = request.get_json(force=True)
     user_query = data_packet.get("question", "").strip()
@@ -131,4 +116,4 @@ def process_inquiry():
 
 if __name__ == "__main__":
     initialize_storage()
-    web_app.run(host="0.0.0.0", port=SERVER_PORT, debug=True)
+    app.run(host="0.0.0.0", port=SERVER_PORT, debug=True) # CHANGED 'web_app' to 'app'
